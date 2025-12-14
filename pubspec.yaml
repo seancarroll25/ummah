@@ -46,6 +46,7 @@ dependencies:
   vector_graphics: ^1.1.19
   purchases_flutter: ^9.9.7
   purchases_ui_flutter: ^9.9.7
+  flutter_launcher_icons: ^0.14.4
 
 
 dev_dependencies:
@@ -61,6 +62,11 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
 
 # The following section is specific to Flutter packages.
 flutter:

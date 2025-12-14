@@ -1,4 +1,4 @@
-package com.ummah.everythingaoo.everythingapp
+package com.getsilatapp.silat
 
 import io.flutter.embedding.android.FlutterActivity
 

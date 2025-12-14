@@ -1,12 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:everythingapp/pages/MainPage.dart';
 import 'package:everythingapp/services/LocationService.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1️⃣ Initialize RevenueCat before runApp
+  // Initialize RevenueCat
   await Purchases.configure(
     PurchasesConfiguration("test_aVutuZrKfnrBKOnfDeUkBFBLlAU"),
   );
@@ -22,9 +24,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String? city;
-  String? country;
+  String city = "Loading...";
+  String country = "Loading...";
   bool isLoading = true;
+  bool _paywallShown = false;
 
   @override
   void initState() {
@@ -32,24 +35,31 @@ class _MyAppState extends State<MyApp> {
     _initApp();
   }
 
-  /// 2️⃣ Combined async initialization
   Future<void> _initApp() async {
-    // a) Get location
     try {
+      // Request location permission and get city/country
       final locationData = await LocationService.getUserCityAndCountry();
-      city = locationData.city;
-      country = locationData.country;
-    } catch (_) {
+      city = locationData.city ?? "Unknown city";
+      country = locationData.country ?? "Unknown country";
+    } catch (e) {
       city = "Unknown city";
       country = "Unknown country";
+      print("Error getting location: $e");
     }
-
-    // b) Show RevenueCat Paywall on load
-    await RevenueCatUI.presentPaywall(); // automatically opens your configured paywall
 
     setState(() {
       isLoading = false;
     });
+
+    // Show RevenueCat paywall once
+    if (!_paywallShown) {
+      _paywallShown = true;
+      try {
+        await RevenueCatUI.presentPaywall();
+      } catch (e) {
+        print("Error showing paywall: $e");
+      }
+    }
   }
 
   @override
@@ -65,10 +75,7 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MainPage(
-        city: city ?? "Unknown city",
-        country: country ?? "Unknown country",
-      ),
+      home: MainPage(city: city, country: country),
     );
   }
 }
