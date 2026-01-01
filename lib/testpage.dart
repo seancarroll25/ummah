@@ -1,8 +1,9 @@
-import 'package:everythingapp/models/PrayerTimesWidgetModel.dart';
-import 'package:everythingapp/services/widget_service.dart';
 import 'package:flutter/material.dart';
 import 'package:home_widget/home_widget.dart';
+import '../services/widget_service.dart';
 import 'dart:convert';
+
+import 'models/PrayerTimesWidgetModel.dart';
 
 class TestPage extends StatefulWidget {
   @override

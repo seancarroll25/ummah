@@ -1,16 +1,19 @@
 // lib/pages/MainPage.dart
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'package:share_plus/share_plus.dart';
 import '../pages/prayer.dart';
 import '../pages/quran.dart';
 import '../pages/names.dart';
 import '../pages/tasbih.dart';
 import '../pages/QiblaPage.dart';
+import '../testpage.dart';
 import '../widgets/time_display.dart';
 
 class MainPage extends StatefulWidget {
@@ -45,6 +48,32 @@ class _MainPageState extends State<MainPage> {
       MaterialPageRoute(builder: (_) => page),
     );
   }
+  void _shareApp() {
+    final box = context.findRenderObject() as RenderBox?;
+
+    if (box == null) return;
+
+    final String shareText = '''
+📿 Strengthen your Deen with this app!
+
+🕌 Prayer Times based on your location
+📖 Quran
+📿 Tasbih
+🧭 Qibla Direction
+
+May Allah reward you for sharing 🤍
+
+📲 Download:
+https://your-app-link.com
+''';
+
+    Share.share(
+      shareText,
+      subject: 'Share Islamic App',
+      sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size,
+    );
+  }
+
 
   Future<void> _determinePosition() async {
     try {
@@ -73,7 +102,10 @@ class _MainPageState extends State<MainPage> {
             place.subAdministrativeArea ??
             "Unknown city";
         userCountry = place.country ?? "Unknown country";
+
       });
+      await HomeWidget.saveWidgetData('user_city', userCity);
+      await HomeWidget.saveWidgetData('user_country', userCountry);
 
       await _fetchTodayPrayerTimes(userCity, userCountry);
     } catch (e) {
@@ -202,6 +234,9 @@ class _MainPageState extends State<MainPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Location
+              _shareWidget(),
+
+              const SizedBox(height: 12),
               Row(
                 children: [
                   const SizedBox(height: 60),
@@ -282,18 +317,7 @@ class _MainPageState extends State<MainPage> {
                   _prayerRow("Isha", todayPrayerTimes['Isha'] ?? '--',
                       "assets/images/drawable/isha.svg"),
                   const SizedBox(height: 15),
-                  _prayerRow(
-                      "Middle of the Night",
-                      todayPrayerTimes['Middle of the Night'] ?? '--',
-                      "assets/images/drawable/isha.svg"),
-                  _prayerRow(
-                      "Tahajjud",
-                      todayPrayerTimes['Tahajjud'] ?? '--',
-                      "assets/images/drawable/fajr.svg"),
-                  _prayerRow(
-                      "Duha",
-                      todayPrayerTimes['Duha'] ?? '--',
-                      "assets/images/drawable/duhur.svg"),
+
                 ],
               ),
 
@@ -336,6 +360,12 @@ class _MainPageState extends State<MainPage> {
                     svgAsset: 'assets/images/drawable/tasbih.svg',
                     onTap: () => _navigateTo(const TasbihPage()),
                   ),
+                  _featureIcon(
+                    title: "Tasbih",
+                    svgAsset: 'assets/images/drawable/tasbih.svg',
+                    onTap: () => _navigateTo(TestPage()),
+                  ),
+
                 ],
               ),
 
@@ -370,6 +400,75 @@ class _MainPageState extends State<MainPage> {
           const Spacer(),
           Text(time, style: const TextStyle(fontSize: 10, fontFamily: "Comfortaa")),
         ],
+      ),
+    );
+  }
+  Widget _shareWidget() {
+    return GestureDetector(
+      onTap: _shareApp,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        margin: const EdgeInsets.only(bottom: 20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFF13A694).withOpacity(0.2),
+              Color(0xFF13A694).withOpacity(0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0xFF13A694).withOpacity(0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Color(0xFF13A694),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xFF13A694).withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.share,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                "Share the app with the Ummah to help others strengthen their deen.",
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "Comfortaa",
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Color(0xFF13A694),
+            ),
+          ],
+        ),
       ),
     );
   }

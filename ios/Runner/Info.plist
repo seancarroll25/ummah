@@ -7,17 +7,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Silat</string>
+	<string>Ummah</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string> Silat uses your location to estimate prayer times. </string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>silat</string>
+	<string>Ummah</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -28,10 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ummah uses your location to calculate accurate prayer times based on your city, such as determining Fajr and Maghrib times for your current location.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to your location at all times to provide location-based notifications and tracking.</string>
+	<string>Ummah uses your location to keep prayer times accurate for your city, such as ensuring daily prayer schedules remain correct.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to your location to show your current position on the map.</string>
+	<string>Ummah uses your location to calculate prayer times for your current city, such as showing today’s Fajr, Dhuhr, and Maghrib times.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
