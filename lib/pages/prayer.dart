@@ -5,6 +5,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/PrayerTime.dart';
 import '../widgets/prayer_time_row.dart';
 
+//i have no idea what ts does anymore
 class PrayerPage extends StatefulWidget {
   final String city;
   final String country;
@@ -35,38 +36,28 @@ class _PrayerPageState extends State<PrayerPage> {
   }
 
   Future<void> _initializeAndCalculate() async {
-    debugPrint("PrayerPage._initializeAndCalculate(): START");
-
     // If coordinates weren't passed, we need to get them
     if (widget.coordinates != null) {
       userCoordinates = widget.coordinates;
-      debugPrint("PrayerPage: Using passed coordinates: ${userCoordinates!.latitude}, ${userCoordinates!.longitude}");
     } else {
       // You might want to get coordinates here using Geolocator
       // For now, we'll show an error
       setState(() {
         isLoading = false;
-        errorMessage = 'Location coordinates not available. Please restart the app.';
+        errorMessage =
+            'Location coordinates not available. Please restart the app.';
       });
-      debugPrint("PrayerPage: No coordinates available");
       return;
     }
 
     await _detectTimezone();
     await calculateMonthlyPrayerTimes();
-
-    debugPrint("PrayerPage._initializeAndCalculate(): END");
   }
 
   Future<void> _detectTimezone() async {
-    debugPrint("PrayerPage._detectTimezone(): START");
     try {
-      // Use the city and country to determine timezone
       String timezoneName = 'UTC';
 
-      debugPrint("PrayerPage._detectTimezone(): Detecting timezone for ${widget.city}, ${widget.country}");
-
-      // Map major cities to timezones
       if (widget.city.toLowerCase().contains('san francisco') ||
           widget.city.toLowerCase().contains('los angeles') ||
           widget.city.toLowerCase().contains('seattle') ||
@@ -115,17 +106,12 @@ class _PrayerPageState extends State<PrayerPage> {
       }
 
       userTimezone = tz.getLocation(timezoneName);
-      debugPrint("PrayerPage._detectTimezone(): Using timezone: ${userTimezone!.name}");
     } catch (e) {
-      debugPrint("PrayerPage._detectTimezone(): Error: $e, falling back to UTC");
       userTimezone = tz.UTC;
     }
-    debugPrint("PrayerPage._detectTimezone(): END");
   }
 
   Future<void> calculateMonthlyPrayerTimes() async {
-    debugPrint("PrayerPage.calculateMonthlyPrayerTimes(): START");
-
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -140,17 +126,12 @@ class _PrayerPageState extends State<PrayerPage> {
       final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
       final List<PrayerTime> monthlyTimes = [];
 
-      debugPrint("PrayerPage: Calculating prayer times for ${daysInMonth} days");
-
-      // Set up calculation parameters based on location
       CalculationParameters params;
 
-      // Choose calculation method based on country/region
       if (widget.country.toLowerCase().contains('united states') ||
           widget.country.toLowerCase().contains('canada')) {
         // ISNA (North America) method - uses 15° for both Fajr and Isha
         params = CalculationMethodParameters.northAmerica();
-        debugPrint("PrayerPage: Using North America (ISNA) method for ${widget.country}");
       } else if (widget.country.toLowerCase().contains('egypt')) {
         params = CalculationMethodParameters.egyptian();
       } else if (widget.country.toLowerCase().contains('saudi') ||
@@ -176,12 +157,9 @@ class _PrayerPageState extends State<PrayerPage> {
       } else if (widget.country.toLowerCase().contains('iran')) {
         params = CalculationMethodParameters.tehran();
       } else {
-        // Default to Muslim World League for other locations
         params = CalculationMethodParameters.muslimWorldLeague();
       }
-
-      // Set madhab
-      params.madhab = Madhab.shafi; // Change to Madhab.hanafi if needed
+      params.madhab = Madhab.shafi;
 
       final timeFormat = DateFormat('HH:mm');
       final dateFormat = DateFormat('dd MMM yyyy');
@@ -201,33 +179,48 @@ class _PrayerPageState extends State<PrayerPage> {
           );
 
           // Convert prayer times to timezone-aware DateTime
-          DateTime fajrTime = tz.TZDateTime.from(dailyPrayerTimes.fajr, userTimezone!);
-          DateTime dhuhrTime = tz.TZDateTime.from(dailyPrayerTimes.dhuhr, userTimezone!);
-          DateTime asrTime = tz.TZDateTime.from(dailyPrayerTimes.asr, userTimezone!);
-          DateTime maghribTime = tz.TZDateTime.from(dailyPrayerTimes.maghrib, userTimezone!);
-          DateTime ishaTime = tz.TZDateTime.from(dailyPrayerTimes.isha, userTimezone!);
+          DateTime fajrTime = tz.TZDateTime.from(
+            dailyPrayerTimes.fajr,
+            userTimezone!,
+          );
+          DateTime dhuhrTime = tz.TZDateTime.from(
+            dailyPrayerTimes.dhuhr,
+            userTimezone!,
+          );
+          DateTime asrTime = tz.TZDateTime.from(
+            dailyPrayerTimes.asr,
+            userTimezone!,
+          );
+          DateTime maghribTime = tz.TZDateTime.from(
+            dailyPrayerTimes.maghrib,
+            userTimezone!,
+          );
+          DateTime ishaTime = tz.TZDateTime.from(
+            dailyPrayerTimes.isha,
+            userTimezone!,
+          );
 
-          monthlyTimes.add(PrayerTime(
-            date: dateFormat.format(date),
-            fajr: timeFormat.format(fajrTime),
-            duhr: timeFormat.format(dhuhrTime),
-            asr: timeFormat.format(asrTime),
-            maghrib: timeFormat.format(maghribTime),
-            isha: timeFormat.format(ishaTime),
-          ));
-
-          debugPrint("PrayerPage: Calculated times for day $day");
+          monthlyTimes.add(
+            PrayerTime(
+              date: dateFormat.format(date),
+              fajr: timeFormat.format(fajrTime),
+              duhr: timeFormat.format(dhuhrTime),
+              asr: timeFormat.format(asrTime),
+              maghrib: timeFormat.format(maghribTime),
+              isha: timeFormat.format(ishaTime),
+            ),
+          );
         } catch (e) {
-          debugPrint("PrayerPage: Error calculating for day $day: $e");
-          // Continue with other days even if one fails
-          monthlyTimes.add(PrayerTime(
-            date: dateFormat.format(DateTime(now.year, now.month, day)),
-            fajr: '--:--',
-            duhr: '--:--',
-            asr: '--:--',
-            maghrib: '--:--',
-            isha: '--:--',
-          ));
+          monthlyTimes.add(
+            PrayerTime(
+              date: dateFormat.format(DateTime(now.year, now.month, day)),
+              fajr: '--:--',
+              duhr: '--:--',
+              asr: '--:--',
+              maghrib: '--:--',
+              isha: '--:--',
+            ),
+          );
         }
       }
 
@@ -237,29 +230,22 @@ class _PrayerPageState extends State<PrayerPage> {
       if (currentIndex != -1) {
         final todayPrayer = monthlyTimes.removeAt(currentIndex);
         monthlyTimes.insert(0, todayPrayer);
-        debugPrint("PrayerPage: Moved today ($today) to top");
       }
 
       setState(() {
         prayerTimes = monthlyTimes;
         isLoading = false;
       });
-
-      debugPrint("PrayerPage.calculateMonthlyPrayerTimes(): END (success) - ${prayerTimes.length} days calculated");
     } catch (e, st) {
-      debugPrint("PrayerPage.calculateMonthlyPrayerTimes(): Error: $e\n$st");
       setState(() {
         isLoading = false;
         errorMessage = 'Error calculating prayer times. Please try again.';
       });
-      debugPrint("PrayerPage.calculateMonthlyPrayerTimes(): END (error)");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("PrayerPage.build(): START - isLoading = $isLoading");
-
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
@@ -273,7 +259,6 @@ class _PrayerPageState extends State<PrayerPage> {
                 children: [
                   InkWell(
                     onTap: () {
-                      debugPrint("PrayerPage: Back button tapped");
                       Navigator.pop(context);
                     },
                     child: const Icon(Icons.arrow_back),
@@ -293,7 +278,6 @@ class _PrayerPageState extends State<PrayerPage> {
                   ),
                   InkWell(
                     onTap: () {
-                      debugPrint("PrayerPage: Home button tapped");
                       Navigator.pop(context);
                     },
                     child: const Icon(Icons.home),
@@ -321,124 +305,124 @@ class _PrayerPageState extends State<PrayerPage> {
             Expanded(
               child: isLoading
                   ? (() {
-                debugPrint("PrayerPage.build(): Showing loading spinner");
-                return const Center(child: CircularProgressIndicator());
-              })()
+                      return const Center(child: CircularProgressIndicator());
+                    })()
                   : errorMessage != null
                   ? (() {
-                debugPrint("PrayerPage.build(): Showing error message");
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 60,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          errorMessage!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontFamily: 'Comfortaa',
-                            fontSize: 14,
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 60,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Comfortaa',
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _initializeAndCalculate();
+                                },
+                                child: const Text('Retry'),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            debugPrint("PrayerPage: Retry button pressed");
-                            _initializeAndCalculate();
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              })()
+                      );
+                    })()
                   : (() {
-                debugPrint("PrayerPage.build(): Building ListView with ${prayerTimes.length} items");
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: prayerTimes.length,
-                  itemBuilder: (context, index) {
-                    final prayer = prayerTimes[index];
-                    final isToday = index == 0; // First item is today after reordering
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: prayerTimes.length,
+                        itemBuilder: (context, index) {
+                          final prayer = prayerTimes[index];
+                          final isToday =
+                              index ==
+                              0; // First item is today after reordering
 
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 20),
-                      elevation: isToday ? 4 : 2,
-                      color: isToday
-                          ? const Color(0xFF13A694).withOpacity(0.1)
-                          : null,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: isToday
-                            ? const BorderSide(
-                          color: Color(0xFF13A694),
-                          width: 2,
-                        )
-                            : BorderSide.none,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'Date: ${prayer.date}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    fontFamily: 'Comfortaa',
-                                    color: isToday
-                                        ? const Color(0xFF13A694)
-                                        : null,
-                                  ),
-                                ),
-                                if (isToday) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF13A694),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Text(
-                                      'TODAY',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        fontFamily: 'Comfortaa',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 20),
+                            elevation: isToday ? 4 : 2,
+                            color: isToday
+                                ? const Color(0xFF13A694).withOpacity(0.1)
+                                : null,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: isToday
+                                  ? const BorderSide(
+                                      color: Color(0xFF13A694),
+                                      width: 2,
+                                    )
+                                  : BorderSide.none,
                             ),
-                            const SizedBox(height: 8),
-                            PrayerTimeRow('Fajr', prayer.fajr),
-                            PrayerTimeRow('Duhr', prayer.duhr),
-                            PrayerTimeRow('Asr', prayer.asr),
-                            PrayerTimeRow('Maghrib', prayer.maghrib),
-                            PrayerTimeRow('Isha', prayer.isha),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              })(),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Date: ${prayer.date}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          fontFamily: 'Comfortaa',
+                                          color: isToday
+                                              ? const Color(0xFF13A694)
+                                              : null,
+                                        ),
+                                      ),
+                                      if (isToday) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF13A694),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'TODAY',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              fontFamily: 'Comfortaa',
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  PrayerTimeRow('Fajr', prayer.fajr),
+                                  PrayerTimeRow('Duhr', prayer.duhr),
+                                  PrayerTimeRow('Asr', prayer.asr),
+                                  PrayerTimeRow('Maghrib', prayer.maghrib),
+                                  PrayerTimeRow('Isha', prayer.isha),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    })(),
             ),
           ],
         ),

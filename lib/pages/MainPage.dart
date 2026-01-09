@@ -1,4 +1,4 @@
-// lib/pages/MainPage.dart
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -45,28 +45,25 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    debugPrint("MainPage.initState(): START");
     _initializeTimezone();
     _determinePosition();
-    debugPrint("MainPage.initState(): END");
+
   }
 
   Future<void> _initializeTimezone() async {
-    debugPrint("MainPage._initializeTimezone(): START");
+
     try {
-      // Initialize timezone database
-      // Note: You need to call tz.initializeTimeZones() in your main.dart
-      // and load the timezone database before using this
+
       final String timeZoneName = DateTime.now().timeZoneName;
-      debugPrint("MainPage._initializeTimezone(): System timezone: $timeZoneName");
+
     } catch (e) {
-      debugPrint("MainPage._initializeTimezone(): Error: $e");
+
     }
-    debugPrint("MainPage._initializeTimezone(): END");
+
   }
 
   void _navigateTo(Widget page) {
-    debugPrint("MainPage._navigateTo(): Navigating to ${page.runtimeType}");
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => page),
@@ -74,11 +71,11 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _shareApp() {
-    debugPrint("MainPage._shareApp(): START");
+
     final box = context.findRenderObject() as RenderBox?;
 
     if (box == null) {
-      debugPrint("MainPage._shareApp(): box is null, returning");
+
       return;
     }
 
@@ -101,17 +98,17 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       subject: 'Share Islamic App',
       sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size,
     );
-    debugPrint("MainPage._shareApp(): END");
+
   }
 
   Future<void> _determinePosition() async {
-    debugPrint("MainPage._determinePosition(): START");
+
     try {
-      debugPrint("Checking if location services are enabled...");
+
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) throw "Location disabled";
 
-      debugPrint("Checking permissions...");
+
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -122,22 +119,21 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
         throw "Permission denied forever";
       }
 
-      debugPrint("Getting current position...");
+
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      debugPrint("Position: ${position.latitude}, ${position.longitude}");
 
-      // Store coordinates for prayer time calculation
+
       userCoordinates = Coordinates(position.latitude, position.longitude);
 
-      debugPrint("Reverse geocoding...");
+
       List<Placemark> placemarks = await placemarkFromCoordinates(
           position.latitude, position.longitude);
 
       if (placemarks.isEmpty) throw "No placemarks returned";
 
       Placemark place = placemarks[0];
-      debugPrint("Placemark: ${place.locality}, ${place.country}");
+
 
       setState(() {
         fetchedUserCity = place.locality!;
@@ -145,11 +141,11 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       });
 
       if (!mounted) {
-        debugPrint("MainPage._determinePosition(): Not mounted, returning");
+
         return;
       }
 
-      debugPrint("MainPage._determinePosition(): Setting state with location");
+
       setState(() {
         userCity = place.locality ??
             place.subAdministrativeArea ??
@@ -157,25 +153,23 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
         userCountry = place.country ?? "Unknown country";
       });
 
-      debugPrint("Saving data to HomeWidget...");
+
       await HomeWidget.saveWidgetData('user_city', userCity);
       await HomeWidget.saveWidgetData('user_country', userCountry);
 
-      // Detect and set user's timezone
       await _detectTimezone();
 
-      debugPrint("Calculating today's prayer times...");
+
       await _calculateTodayPrayerTimes();
 
-      debugPrint("Updating widget...");
+
       await HomeWidget.updateWidget(iOSName: 'PrayerTimesWidget');
 
-      debugPrint("MainPage._determinePosition(): END (success)");
+
     } catch (e, st) {
-      debugPrint("Location error: $e\n$st");
+
       if (!mounted) {
-        debugPrint(
-            "MainPage._determinePosition(): Not mounted after error, returning");
+
         return;
       }
       setState(() {
@@ -183,19 +177,19 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
         userCountry = "Unknown country";
         isLoading = false;
       });
-      debugPrint("MainPage._determinePosition(): END (error)");
+
     }
   }
 
   Future<void> _detectTimezone() async {
-    debugPrint("MainPage._detectTimezone(): START");
+
     try {
-      // Use the city and country to determine timezone
+
       String timezoneName = 'UTC';
 
-      debugPrint("MainPage._detectTimezone(): Detecting timezone for $userCity, $userCountry");
 
-      // Map major cities to timezones
+
+
       if (userCity.toLowerCase().contains('san francisco') ||
           userCity.toLowerCase().contains('los angeles') ||
           userCity.toLowerCase().contains('seattle') ||
@@ -244,16 +238,16 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       }
 
       userTimezone = tz.getLocation(timezoneName);
-      debugPrint("MainPage._detectTimezone(): Using timezone: ${userTimezone!.name}");
+
     } catch (e) {
-      debugPrint("MainPage._detectTimezone(): Error: $e");
+
       userTimezone = tz.UTC;
     }
-    debugPrint("MainPage._detectTimezone(): END");
+
   }
 
   Future<void> _calculateTodayPrayerTimes() async {
-    debugPrint("MainPage._calculateTodayPrayerTimes(): START");
+
     try {
       if (userCoordinates == null) {
         throw Exception('User coordinates not available');
@@ -266,9 +260,9 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       // Create timezone-aware date - MUST get timezone first, then create date from it
       tz.TZDateTime date = tz.TZDateTime.from(DateTime.now(), userTimezone!);
 
-      debugPrint("MainPage._calculateTodayPrayerTimes(): Calculating for coordinates: ${userCoordinates!.latitude}, ${userCoordinates!.longitude}");
-      debugPrint("MainPage._calculateTodayPrayerTimes(): Timezone: ${userTimezone!.name}");
-      debugPrint("MainPage._calculateTodayPrayerTimes(): TZDateTime: $date");
+
+
+
 
       // Set up calculation parameters based on location
       CalculationParameters params;
@@ -278,7 +272,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
           userCountry.toLowerCase().contains('canada')) {
         // ISNA (North America) method - uses 15° for both Fajr and Isha
         params = CalculationMethodParameters.northAmerica();
-        debugPrint("MainPage: Using North America (ISNA) method for $userCountry");
+
       } else if (userCountry.toLowerCase().contains('egypt')) {
         params = CalculationMethodParameters.egyptian();
       } else if (userCountry.toLowerCase().contains('saudi') ||
@@ -327,13 +321,13 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       DateTime maghribTime = tz.TZDateTime.from(prayerTimes.maghrib, userTimezone!);
       DateTime ishaTime = tz.TZDateTime.from(prayerTimes.isha, userTimezone!);
 
-      debugPrint("MainPage: Fajr UTC: ${prayerTimes.fajr}");
-      debugPrint("MainPage: Fajr Local: $fajrTime");
+
+
 
       // Format times
       final timeFormat = DateFormat('HH:mm');
 
-      debugPrint("MainPage._calculateTodayPrayerTimes(): Setting state with prayer times");
+
       setState(() {
         todayPrayerTimes = {
           'Fajr': timeFormat.format(fajrTime),
@@ -359,26 +353,26 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
         isLoading = false;
       });
 
-      debugPrint("MainPage._calculateTodayPrayerTimes(): END (success)");
+
     } catch (e, st) {
-      debugPrint("Error calculating prayer times: $e\n$st");
+
       setState(() {
         isLoading = false;
       });
-      debugPrint("MainPage._calculateTodayPrayerTimes(): END (error)");
+
     }
   }
 
   String _getHijriDate(DateTime date) {
-    debugPrint("MainPage._getHijriDate(): START");
+
     try {
       // Simple Hijri date calculation
       // For more accurate conversion, consider using a dedicated Hijri calendar package
       final hijri = _convertToHijri(date);
-      debugPrint("MainPage._getHijriDate(): END");
+
       return hijri;
     } catch (e) {
-      debugPrint("MainPage._getHijriDate(): Error: $e");
+
       return "Hijri date unavailable";
     }
   }
@@ -427,7 +421,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       DateTime sunrise,
       DateTime maghrib,
       ) {
-    debugPrint("MainPage._calculateExtraPrayers(): START");
+
     Map<String, String> extra = {};
     try {
       final timeFormat = DateFormat('HH:mm');
@@ -449,9 +443,9 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       DateTime duha = sunrise.add(const Duration(minutes: 20));
       extra['Duha'] = timeFormat.format(duha);
     } catch (e) {
-      debugPrint("Extra prayers error: $e");
+
     }
-    debugPrint("MainPage._calculateExtraPrayers(): END");
+
     return extra;
   }
 
@@ -470,7 +464,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
 
   String _calculateNextPrayer() {
-    debugPrint("MainPage._calculateNextPrayer(): START");
+
     final now = DateTime.now();
     String? next;
     Duration min = const Duration(days: 1);
@@ -488,23 +482,23 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
       } catch (_) {}
     });
 
-    debugPrint("MainPage._calculateNextPrayer(): END - next is $next");
+
     return next ?? "No more prayers today";
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("MainPage.build(): START - isLoading = $isLoading");
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       body: isLoading
           ? (() {
-        debugPrint("MainPage.build(): Showing loading spinner");
+
         return const Center(child: CircularProgressIndicator());
       })()
           : Builder(
         builder: (context) {
-          debugPrint("MainPage.build(): Building main content");
+
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.only(
@@ -513,12 +507,12 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   (() {
-                    debugPrint("MainPage.build(): Building _shareWidget");
+
                     return _shareWidget();
                   })(),
                   const SizedBox(height: 12),
                   (() {
-                    debugPrint("MainPage.build(): Building location row");
+
                     return Row(
                       children: [
                         const SizedBox(height: 60),
@@ -538,13 +532,12 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 12),
                   (() {
-                    debugPrint("MainPage.build(): Building TimeDisplay");
+
                     return TimeDisplay();
                   })(),
                   const SizedBox(height: 5),
                   (() {
-                    debugPrint(
-                        "MainPage.build(): Building next prayer text");
+
                     return Text(
                       "Next prayer: $nextPrayer",
                       style: const TextStyle(
@@ -556,7 +549,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 40),
                   (() {
-                    debugPrint("MainPage.build(): Building date row");
+
                     return Row(
                       children: [
                         Text(
@@ -575,7 +568,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 5),
                   (() {
-                    debugPrint("MainPage.build(): Building hijri date");
+
                     return Text(
                       "Hijri: $hijriDate",
                       style: const TextStyle(
@@ -587,8 +580,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 20),
                   (() {
-                    debugPrint(
-                        "MainPage.build(): Building prayer times column");
+
                     return Column(
                       children: [
                         _prayerRow("Fajr", todayPrayerTimes['Fajr'] ?? '--',
@@ -608,8 +600,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 40),
                   (() {
-                    debugPrint(
-                        "MainPage.build(): Building 'All Features' text");
+
                     return const Text(
                       "All Features",
                       style: TextStyle(
@@ -621,8 +612,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 10),
                   (() {
-                    debugPrint(
-                        "MainPage.build(): Building feature icons row");
+
                     return Row(
                       children: [
                         _featureIcon(
@@ -676,8 +666,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                   })(),
                   const SizedBox(height: 18),
                   (() {
-                    debugPrint(
-                        "MainPage.build(): Building qibla icon row");
+
                     return Row(
                       children: [
                         _featureIcon(
@@ -692,7 +681,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
                     );
                   })(),
                   (() {
-                    debugPrint("MainPage.build(): Column complete");
+
                     return const SizedBox.shrink();
                   })(),
                 ],
@@ -705,8 +694,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
   }
 
   Widget _prayerRow(String name, String time, String fileName) {
-    debugPrint(
-        "MainPage._prayerRow(): Building row for $name with $fileName");
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -729,7 +717,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
   }
 
   Widget _shareWidget() {
-    debugPrint("MainPage._shareWidget(): Building widget");
+
     return GestureDetector(
       onTap: _shareApp,
       child: Container(
@@ -804,8 +792,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
     String? svgAsset,
     required VoidCallback onTap,
   }) {
-    debugPrint(
-        "MainPage._featureIcon(): Building icon for $title with ${svgAsset ?? 'no SVG'}");
+
     return GestureDetector(
       onTap: onTap,
       child: Column(

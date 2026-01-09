@@ -35,16 +35,13 @@ class _PremiumGuardState extends State<PremiumGuard> {
   }
 
   Future<void> _showPaywall() async {
-    debugPrint('[PREMIUM GUARD] Presenting paywall');
 
     await RevenueCatUI.presentPaywall();
 
     await SubscriptionService.refresh();
     _isPremium = await SubscriptionService.hasPremium();
 
-    debugPrint(
-      '[PREMIUM GUARD] After paywall entitlement: $_isPremium',
-    );
+
 
     if (!_isPremium && mounted) {
       Navigator.of(context).pushReplacement(

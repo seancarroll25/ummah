@@ -10,7 +10,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'background/widget_callback.dart';
 
 void main() async {
-  debugPrint("main(): starting app...");
+
 
   // We commented these out previously
    WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +20,7 @@ void main() async {
 
   await SubscriptionService.init();
    runApp(MyApp());
-  debugPrint("main(): runApp complete.");
+
 }
 
 Future<void> _loadPrayerTimesOnStartup({
@@ -29,7 +29,7 @@ Future<void> _loadPrayerTimesOnStartup({
   String? city,
   String? country,
 }) async {
-  debugPrint("_loadPrayerTimesOnStartup(): starting...");
+
 
   try {
     // Store location for background updates
@@ -38,7 +38,7 @@ Future<void> _loadPrayerTimesOnStartup({
     if (city != null) await HomeWidget.saveWidgetData('user_city', city);
     if (country != null) await HomeWidget.saveWidgetData('user_country', country);
 
-    debugPrint("_loadPrayerTimesOnStartup(): saved location to widget data");
+
 
     final prayerService = PrayerService();
     final prayerTimes = await prayerService.getPrayerTimes(
@@ -47,17 +47,12 @@ Future<void> _loadPrayerTimesOnStartup({
       city: city,
       country: country,
     );
-    debugPrint("_loadPrayerTimesOnStartup(): fetched prayer times successfully.");
+
 
     try {
       await WidgetService.updateWidget(prayerTimes);
-      debugPrint("_loadPrayerTimesOnStartup(): widget updated successfully.");
-    } catch (widgetError, widgetStack) {
-      debugPrint("_loadPrayerTimesOnStartup(): failed to update widget: $widgetError\n$widgetStack");
-    }
-  } catch (e, st) {
-    debugPrint("_loadPrayerTimesOnStartup(): failed to fetch prayer times: $e\n$st");
-  }
+    } catch (_) {}
+  } catch (_) {}
 }
 
 class MyApp extends StatefulWidget {
@@ -75,18 +70,17 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    debugPrint("_MyAppState.initState(): starting initialization...");
     _initApp();
   }
 
 // _initApp() inside MyAppState
   Future<void> _initApp() async {
-    debugPrint("_initApp(): fetching location...");
+
     try {
       final locationData = await LocationService.getUserCityAndCountry();
       city = locationData.city;
       country = locationData.country;
-      debugPrint("_initApp(): location fetched: $city, $country");
+
 
       try {
         await _loadPrayerTimesOnStartup(
@@ -95,13 +89,12 @@ class _MyAppState extends State<MyApp> {
           city: city,
           country: country
         );
-        debugPrint("_initApp(): prayer times loaded successfully.");
-      } catch (prayerError, prayerStack) {
-        debugPrint("_initApp(): error loading prayer times: $prayerError\n$prayerStack");
+
+      } catch (_) {
+
       }
     } catch (e, st) {
-      debugPrint("_initApp(): error fetching location/prayer times: $e\n$st");
-      city = "Unknown city 1";
+      city = "Unknown city";
       country = "Unknown country";
     }
 
@@ -110,12 +103,11 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       isLoading = false;
     });
-    debugPrint("_initApp(): initialization complete.");
   }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("_MyAppState.build(): building widget tree. isLoading = $isLoading");
+
     if (isLoading) {
       return const MaterialApp(
         debugShowCheckedModeBanner: false,

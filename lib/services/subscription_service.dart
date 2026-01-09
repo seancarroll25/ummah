@@ -17,7 +17,6 @@ class SubscriptionService {
       ),
     );
 
-    debugPrint('$_tag RevenueCat initialized');
   }
 
   static Future<bool> hasPremium() async {
@@ -26,14 +25,10 @@ class SubscriptionService {
       final active =
       info.entitlements.active.containsKey(entitlementId);
 
-      debugPrint(
-        '$_tag entitlement active: $active | '
-            'all entitlements: ${info.entitlements.active.keys}',
-      );
+
 
       return active;
     } catch (e, st) {
-      debugPrint('$_tag entitlement check error: $e\n$st');
       return false;
     }
   }

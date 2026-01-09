@@ -43,7 +43,7 @@ class _TimeDisplayState extends State<TimeDisplay> {
 
   String _formatCurrentTime() {
     return DateFormat('HH:mm').format(DateTime.now());
-    // For 12-hour format with AM/PM: DateFormat('hh:mm a').format(DateTime.now());
+    // For 12-hour format with AM/PM: DateFormat('hh:mm a').format(DateTime.now()); - Sean
   }
 
   @override

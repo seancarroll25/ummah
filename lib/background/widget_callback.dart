@@ -6,7 +6,7 @@ import '../services/widget_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> backgroundCallback(Uri? uri) async {
-  debugPrint('🔄 Background callback started');
+
 
   try {
     // Initialize the widget service
@@ -17,11 +17,9 @@ Future<void> backgroundCallback(Uri? uri) async {
     final longitude = await HomeWidget.getWidgetData<double>('user_longitude') ?? 0.0;
 
     if (latitude == 0.0 && longitude == 0.0) {
-      debugPrint('❌ No location data available');
       return;
     }
 
-    debugPrint('📍 Background location: $latitude, $longitude');
 
     // Fetch prayer times - no timezone manipulation needed
     final service = PrayerService();
@@ -33,13 +31,7 @@ Future<void> backgroundCallback(Uri? uri) async {
     // Update the widget
     final success = await WidgetService.updateWidget(times);
 
-    if (success) {
-      debugPrint('✅ Background update completed');
-    } else {
-      debugPrint('❌ Widget update failed');
-    }
 
-  } catch (e, st) {
-    debugPrint('❌ backgroundCallback error: $e\n$st');
+  } catch (_) {
   }
 }

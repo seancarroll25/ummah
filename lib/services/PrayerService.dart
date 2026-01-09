@@ -28,11 +28,6 @@ class PrayerService {
     final userTimezone = await _detectTimezone(latitude, longitude, city, country);
     final timezoneName = userTimezone.name;
 
-    debugPrint('═══════════════════════════════════════');
-    debugPrint('🕐 Current DateTime.now(): $now');
-    debugPrint('🌍 Detected timezone: $timezoneName');
-    debugPrint('📍 Coordinates: $latitude, $longitude');
-    debugPrint('═══════════════════════════════════════');
 
     // Check cache
     final cachedDate = prefs.getString(_cacheDateKey);
@@ -41,12 +36,9 @@ class PrayerService {
     if (cachedDate == today &&
         cachedTimezone == timezoneName &&
         prefs.containsKey(_cacheKey)) {
-      debugPrint('📦 Using cached prayer times');
       final cached = jsonDecode(prefs.getString(_cacheKey)!);
       return PrayerTimesModel.fromApi(cached, now);
     }
-
-    debugPrint('🔄 Calculating new prayer times');
 
     // Calculate prayer times
     final coordinates = Coordinates(latitude, longitude);
@@ -82,12 +74,6 @@ class PrayerService {
       'Maghrib': timeFormat.format(maghribTime),
       'Isha': timeFormat.format(ishaTime),
     };
-
-    debugPrint('✅ Prayer times calculated (local time):');
-    timings.forEach((key, value) {
-      debugPrint('   $key: $value');
-    });
-    debugPrint('═══════════════════════════════════════');
 
     // Cache the results
     await prefs.setString(_cacheKey, jsonEncode(timings));
@@ -163,10 +149,8 @@ class PrayerService {
         }
       }
 
-      debugPrint('🌍 Detected timezone: $timezoneName');
       return tz.getLocation(timezoneName);
     } catch (e) {
-      debugPrint('⚠️ Timezone detection error: $e, using UTC');
       return tz.UTC;
     }
   }

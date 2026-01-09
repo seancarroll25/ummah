@@ -14,10 +14,10 @@ class VerseItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use theme colors for background and text
+
     final textColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.black;
-    final cardColor = Theme.of(context).cardColor; // background for the card
-    final verseCircleColor = const Color(0xFF13A694); // app green color
+    final cardColor = Theme.of(context).cardColor;
+    final verseCircleColor = const Color(0xFF13A694);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
@@ -43,13 +43,13 @@ class VerseItem extends StatelessWidget {
             height: 25,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: verseCircleColor, // ✅ use green
+              color: verseCircleColor,
             ),
             alignment: Alignment.center,
             child: Text(
               '$verseId',
               style: const TextStyle(
-                color: Colors.white, // ID text stays white
+                color: Colors.white,
                 fontSize: 12,
                 fontFamily: 'Comfortaa',
               ),
@@ -67,7 +67,7 @@ class VerseItem extends StatelessWidget {
               textDirection: TextDirection.rtl,
               style: const TextStyle(
                 fontSize: 25,
-                fontFamily: 'ArabicFont', // keep your Arabic font
+                fontFamily: 'ArabicFont',
               ),
             ),
           ),
@@ -78,7 +78,7 @@ class VerseItem extends StatelessWidget {
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             height: 1,
-            color: Theme.of(context).dividerColor, // use theme divider color
+            color: Theme.of(context).dividerColor,
           ),
 
           const SizedBox(height: 10),
@@ -90,7 +90,7 @@ class VerseItem extends StatelessWidget {
               translation,
               style: TextStyle(
                 fontSize: 15,
-                color: textColor, // themed text color
+                color: textColor,
                 fontFamily: 'Comfortaa',
               ),
             ),
