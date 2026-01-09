@@ -57,6 +57,7 @@ class _QuranPageState extends State<QuranPage> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
+
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error loading data: $e')));

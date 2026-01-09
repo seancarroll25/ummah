@@ -58,37 +58,42 @@ struct PrayerTimesProvider: TimelineProvider {
 
 
     private func loadEntry() -> PrayerEntry {
-        var debugLog = ""
+        let sharedDefaults = UserDefaults(suiteName: "group.com.getsilat.silat")
         
-        guard let sharedDefaults = UserDefaults(suiteName: "group.com.getsilat.silat") else {
-            debugLog = "❌ Cannot access UserDefaults"
-            return PrayerEntry(date: Date(), prayers: [], city: "Unknown", country: "", debugInfo: debugLog)
-        }
+        let city = sharedDefaults?.string(forKey: "user_city") ?? "Unknown"
+        let country = sharedDefaults?.string(forKey: "user_country") ?? ""
         
-        // Read city/country properly
-        let city = sharedDefaults.string(forKey: "user_city") ?? "Unknown"
-        let country = sharedDefaults.string(forKey: "user_country") ?? ""
-        
-        debugLog += "✅ UserDefaults OK\n"
-        
-        guard let jsonString = sharedDefaults.string(forKey: "today_prayers") else {
-            debugLog += "❌ No 'today_prayers' key found"
-            return PrayerEntry(date: Date(), prayers: [], city: city, country: country, debugInfo: debugLog)
-        }
-        
-        guard let jsonData = jsonString.data(using: .utf8) else {
-            debugLog += "❌ Cannot convert to data"
-            return PrayerEntry(date: Date(), prayers: [], city: city, country: country, debugInfo: debugLog)
+        guard
+            let jsonString = sharedDefaults?.string(forKey: "today_prayers"),
+            let jsonData = jsonString.data(using: .utf8)
+        else {
+            // Keys missing → return placeholder prayers
+            let defaultPrayers = [
+                Prayer(name: "Fajr", time: "--:--"),
+                Prayer(name: "Dhuhr", time: "--:--"),
+                Prayer(name: "Asr", time: "--:--"),
+                Prayer(name: "Maghrib", time: "--:--"),
+                Prayer(name: "Isha", time: "--:--")
+            ]
+            return PrayerEntry(date: Date(), prayers: defaultPrayers, city: city, country: country, debugInfo: "Using defaults")
         }
         
         do {
             let payload = try JSONDecoder().decode(PrayerTimesPayload.self, from: jsonData)
-            return PrayerEntry(date: Date(), prayers: payload.prayers, city: city, country: country, debugInfo: debugLog)
+            return PrayerEntry(date: Date(), prayers: payload.prayers, city: city, country: country, debugInfo: "Loaded from UserDefaults")
         } catch {
-            debugLog += "❌ Parse error: \(error.localizedDescription)"
-            return PrayerEntry(date: Date(), prayers: [], city: city, country: country, debugInfo: debugLog)
+            // Parse error → return default prayers
+            let defaultPrayers = [
+                Prayer(name: "Fajr", time: "--:--"),
+                Prayer(name: "Dhuhr", time: "--:--"),
+                Prayer(name: "Asr", time: "--:--"),
+                Prayer(name: "Maghrib", time: "--:--"),
+                Prayer(name: "Isha", time: "--:--")
+            ]
+            return PrayerEntry(date: Date(), prayers: defaultPrayers, city: city, country: country, debugInfo: "Parse error: \(error.localizedDescription)")
         }
     }
+
 
 
 }
@@ -162,6 +167,6 @@ struct PrayerTimesWidget: Widget {
         }
         .configurationDisplayName("Prayer Times")
         .description("Today's prayer schedule")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([ .systemMedium])
     }
 }

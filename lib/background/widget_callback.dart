@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/PrayerService.dart';
@@ -5,31 +6,40 @@ import '../services/widget_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> backgroundCallback(Uri? uri) async {
-  try {
+  debugPrint('🔄 Background callback started');
 
+  try {
     // Initialize the widget service
     await WidgetService.initialize();
 
-    // Get user preferences
-    final prefs = await SharedPreferences.getInstance();
-    final method = prefs.getInt('prayer_method') ?? 2;
-    final city =
-        await HomeWidget.getWidgetData<String>('user_city') ?? 'Unknown';
-    final country =
-        await HomeWidget.getWidgetData<String>('user_country') ?? 'Unknown';
+    // Retrieve last known coordinates
+    final latitude = await HomeWidget.getWidgetData<double>('user_latitude') ?? 0.0;
+    final longitude = await HomeWidget.getWidgetData<double>('user_longitude') ?? 0.0;
 
-    // Fetch prayer times
+    if (latitude == 0.0 && longitude == 0.0) {
+      debugPrint('❌ No location data available');
+      return;
+    }
+
+    debugPrint('📍 Background location: $latitude, $longitude');
+
+    // Fetch prayer times - no timezone manipulation needed
     final service = PrayerService();
-    final times = await service.getPrayerTimesByCity(
-      city: city,
-      country: country,
-      method: method,
+    final times = await service.getPrayerTimes(
+      latitude: latitude,
+      longitude: longitude,
     );
 
     // Update the widget
-    await WidgetService.updateWidget(times);
+    final success = await WidgetService.updateWidget(times);
 
-  } catch (_) {
+    if (success) {
+      debugPrint('✅ Background update completed');
+    } else {
+      debugPrint('❌ Widget update failed');
+    }
 
+  } catch (e, st) {
+    debugPrint('❌ backgroundCallback error: $e\n$st');
   }
 }

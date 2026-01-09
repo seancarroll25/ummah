@@ -10,6 +10,15 @@
 	<string>Ummah</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.com.getsilat.silat</string>
+    </array>
+    
+    <key>NSCameraUsageDescription</key>
+    <string>Scan ingredient labels for halal verification</string>
+
+
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
