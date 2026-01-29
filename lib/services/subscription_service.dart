@@ -4,10 +4,39 @@ import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'dart:io';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class SubscriptionService {
   static const entitlementId = 'Ummah Pro';
   static const _tag = '[SUBSCRIPTION]';
+  static const _lastFreeScanKey = 'last_free_scan_date';
 
+  static Future<bool> canUseFreeScanToday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastDate = prefs.getString(_lastFreeScanKey);
+
+    if (lastDate == null) return true;
+
+    final lastScan = DateTime.parse(lastDate);
+    final now = DateTime.now();
+
+    return now.year != lastScan.year ||
+        now.month != lastScan.month ||
+        now.day != lastScan.day;
+  }
+  static Future<void> resetFreeScan() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_lastFreeScanKey);
+    debugPrint('Free scan reset');
+  }
+
+  static Future<void> markFreeScanUsed() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      _lastFreeScanKey,
+      DateTime.now().toIso8601String(),
+    );
+  }
   static bool _initialized = false;
 
   static Future<void> init() async {

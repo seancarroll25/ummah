@@ -20,6 +20,7 @@ import '../services/background_prayer_notification_service.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_notification_manager.dart';
 
+import '../services/subscription_service.dart';
 import '../widgets/premium_guard.dart';
 import '../widgets/time_display.dart';
 
@@ -397,8 +398,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
   String _getHijriDate(DateTime date) {
 
     try {
-      // Simple Hijri date calculation
-      // For more accurate conversion, consider using a dedicated Hijri calendar package
+
       final hijri = _convertToHijri(date);
 
       return hijri;
@@ -409,8 +409,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
   }
 
   String _convertToHijri(DateTime gregorianDate) {
-    // This is a basic conversion. For production, use a proper Hijri calendar library
-    // like 'hijri' package
+
     final jd = _gregorianToJulian(
       gregorianDate.year,
       gregorianDate.month,
@@ -646,21 +645,17 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
 
                     return Row(
                       children: [
+
+
                         _featureIcon(
-                          title: "Prayer",
-                          svgAsset:
-                          'assets/images/drawable/prayer_times.svg',
-                          onTap: () => _navigateTo(
+                          title: "Halal\nScanner",
+                          svgAsset: 'assets/images/drawable/barcode.svg',
+                          onTap: () => _navigateTo(  const HalalScannerPage(),
 
-                            PrayerPage(
-                              city: userCity,
-                              country: userCountry,
-                              coordinates: userCoordinates,
 
-                            )
                           ),
                         ),
-                        const SizedBox(width: 30),
+                        const SizedBox(width: 10),
                         _featureIcon(
                           title: "Quran",
                           svgAsset: 'assets/images/drawable/quran.svg',
@@ -672,7 +667,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
 
                           ),
                         ),
-                        const SizedBox(width: 30),
+                        const SizedBox(width: 10),
                         _featureIcon(
                           title: "Names",
                           svgAsset: 'assets/images/drawable/names.svg',
@@ -682,7 +677,7 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
 
                           ),
                         ),
-                        const SizedBox(width: 30),
+                        const SizedBox(width: 10),
                         _featureIcon(
                           title: "Tasbih",
                           svgAsset: 'assets/images/drawable/tasbih.svg',
@@ -708,14 +703,22 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
 
                           ),
                         ),
-                        const SizedBox(width: 30),
-                        _featureIcon(
-                          title: "Scanner",
-                          svgAsset: 'assets/images/drawable/barcode.svg',
-                          onTap: () => _navigateTo(PremiumGuard(child:
-                            const HalalScannerPage(),
-                          )
 
+
+                        const SizedBox(width: 10),
+
+                        _featureIcon(
+                          title: "Prayer",
+                          svgAsset:
+                          'assets/images/drawable/prayer_times.svg',
+                          onTap: () => _navigateTo(
+
+                              PrayerPage(
+                                city: userCity,
+                                country: userCountry,
+                                coordinates: userCoordinates,
+
+                              )
                           ),
                         ),
                       ],
@@ -833,47 +836,60 @@ https://apps.apple.com/app/silat-quran-qibla-tasbih/id6756083062
     String? svgAsset,
     required VoidCallback onTap,
   }) {
-
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: const Color(0xFF13A694),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: SizedBox(
-                width: 35,
-                height: 35,
-                child: svgAsset != null
-                    ? SvgPicture.asset(
-                  svgAsset,
+      child: SizedBox(
+        width: 70,
+        height: 100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: const Color(0xFF13A694),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: SizedBox(
                   width: 35,
                   height: 35,
-                  fit: BoxFit.contain,
-                  colorFilter: const ColorFilter.mode(
-                      Color(0xFFFFFFFF), BlendMode.srcIn),
-                )
-                    : const Icon(Icons.image_not_supported,
-                    size: 35, color: Color(0xFFFFFFFF)),
+                  child: svgAsset != null
+                      ? SvgPicture.asset(
+                    svgAsset,
+                    width: 35,
+                    height: 35,
+                    fit: BoxFit.contain,
+                    colorFilter: const ColorFilter.mode(
+                        Color(0xFFFFFFFF), BlendMode.srcIn),
+                  )
+                      : const Icon(Icons.image_not_supported,
+                      size: 35, color: Color(0xFFFFFFFF)),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                fontFamily: "Comfortaa"),
-          ),
-        ],
+            const SizedBox(height: 5),
+            SizedBox(
+              width: 60,
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Comfortaa",
+                  height: 1.1,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 }

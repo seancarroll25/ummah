@@ -3,6 +3,67 @@
 
 
 class LocalHalalDatabase {
+
+
+  static String normalize(String text) {
+    var clean = text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ');
+
+    // Normalize E-numbers: "e 471" or "E-471" -> "e471"
+    clean = clean.replaceAllMapped(RegExp(r'e[\s\-]?(\d{3,4})'), (m) => 'e${m[1]}');
+
+    return clean;
+  }
+  static Map<String, List<String>> analyzeText(String text) {
+    final normalizedText = normalize(text);
+
+    // Split text into words for whole-word matching
+    final textWords = normalizedText.split(' ').toSet();
+
+    List<String> foundHaram = [];
+    List<String> foundQuestionable = [];
+    List<String> foundHalal = [];
+    List<String> reasons = [];
+
+    // Helper to check if all words in ingredient are present
+    bool ingredientMatches(String ingredient) {
+      final ingredientWords = normalize(ingredient).split(' ');
+      return ingredientWords.every((w) => textWords.contains(w));
+    }
+
+    // Check haram ingredients
+    haramIngredients.forEach((ingredient, reason) {
+      if (ingredientMatches(ingredient)) {
+        foundHaram.add(ingredient);
+        reasons.add(reason);
+      }
+    });
+
+    // Check questionable ingredients
+    questionableIngredients.forEach((ingredient, reason) {
+      if (ingredientMatches(ingredient)) {
+        foundQuestionable.add(ingredient);
+        reasons.add(reason);
+      }
+    });
+
+    // Determine halal words: words not flagged as haram or questionable
+    foundHalal = textWords
+        .where((w) =>
+    !foundHaram.any((i) => normalize(i).split(' ').contains(w)) &&
+        !foundQuestionable.any((i) => normalize(i).split(' ').contains(w)))
+        .toList();
+
+    return {
+      'haram': foundHaram,
+      'questionable': foundQuestionable,
+      'halal': foundHalal,
+      'reasons': reasons,
+    };
+  }
+
   static const Map<String, String> haramIngredients = {
     'pork': 'Pork is explicitly forbidden in Islam',
     'bacon': 'Pork product',
@@ -105,34 +166,4 @@ class LocalHalalDatabase {
     return halalCertifications.any((cert) => lowerText.contains(cert));
   }
 
-  // Check ingredients in text
-  static Map<String, List<String>> analyzeText(String text) {
-    final lowerText = text.toLowerCase();
-
-    List<String> foundHaram = [];
-    List<String> foundQuestionable = [];
-    List<String> reasons = [];
-
-    // Check for haram ingredients
-    haramIngredients.forEach((ingredient, reason) {
-      if (lowerText.contains(ingredient)) {
-        foundHaram.add(ingredient);
-        reasons.add(reason);
-      }
-    });
-
-    // Check for questionable ingredients
-    questionableIngredients.forEach((ingredient, reason) {
-      if (lowerText.contains(ingredient)) {
-        foundQuestionable.add(ingredient);
-        reasons.add(reason);
-      }
-    });
-
-    return {
-      'haram': foundHaram,
-      'questionable': foundQuestionable,
-      'reasons': reasons,
-    };
-  }
 }

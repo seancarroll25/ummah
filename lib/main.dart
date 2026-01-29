@@ -16,7 +16,7 @@ void main() async {
 
   // We commented these out previously
    WidgetsFlutterBinding.ensureInitialized();
-  tz.initializeTimeZones();
+    tz.initializeTimeZones();
    await HomeWidget.setAppGroupId(WidgetService.appGroupId);
    HomeWidget.registerBackgroundCallback(backgroundCallback);
 

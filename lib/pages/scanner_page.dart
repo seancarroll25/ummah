@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import '../services/halal_scanner_service.dart';
+import '../services/scan_limit_service.dart';
+import '../services/subscription_service.dart';
 import 'halal_result_page.dart';
 
 class HalalScannerPage extends StatefulWidget {
@@ -19,6 +22,8 @@ class _HalalScannerPageState extends State<HalalScannerPage> {
   bool _isScanning = false;
   final HalalScannerService _scannerService = HalalScannerService();
   final ImagePicker _imagePicker = ImagePicker();
+  final ScanLimitService _scanLimitService = ScanLimitService();
+
 
   @override
   void initState() {
@@ -56,75 +61,93 @@ class _HalalScannerPageState extends State<HalalScannerPage> {
       }
     }
   }
+  Future<bool> _canPerformScan() async {
+    if (await SubscriptionService.hasPremium()) return true;
+
+    if (await SubscriptionService.canUseFreeScanToday()) {
+      return true;
+    }
+
+    await RevenueCatUI.presentPaywall();
+    await SubscriptionService.refresh();
+
+    return await SubscriptionService.hasPremium();
+  }
+
+  Future<void> _processImage(String imagePath) async {
+    try {
+      final result = await _scannerService.scanProduct(imagePath);
+
+      if (!await SubscriptionService.hasPremium()) {
+        await SubscriptionService.markFreeScanUsed();
+      }
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => HalalScanResultPage(
+            imagePath: imagePath,
+            result: result,
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Scan error: $e')));
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    final allowed = await _canPerformScan();
+    if (!allowed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Daily free scan limit reached')),
+      );
+      return;
+    }
+
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+      );
+
+      if (image != null) {
+        _processImage(image.path);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 
   Future<void> _captureAndScan() async {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+
+    final allowed = await _canPerformScan();
+    if (!allowed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Camera not ready')),
+        const SnackBar(content: Text('Daily free scan limit reached')),
       );
       return;
     }
 
     setState(() => _isScanning = true);
 
-
     try {
       final XFile image = await _cameraController!.takePicture();
-
-
-      // Navigate to results page
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => HalalScanResultPage(
-              imagePath: image.path,
-              scannerService: _scannerService,
-            ),
-          ),
-        );
-      }
+      _processImage(image.path);
     } catch (e) {
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
-      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Scan failed: $e')));
     } finally {
       setState(() => _isScanning = false);
     }
   }
 
-  Future<void> _pickFromGallery() async {
-    try {
-
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-      );
-
-      if (image != null) {
-
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => HalalScanResultPage(
-                imagePath: image.path,
-                scannerService: _scannerService,
-              ),
-            ),
-          );
-        }
-      } else {}
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
-      }
-    }
-  }
 
   @override
   void dispose() {
